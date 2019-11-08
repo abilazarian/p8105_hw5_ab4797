@@ -46,6 +46,7 @@ iris_with_missing =  map(iris_with_missing, missing_data) %>%
 
 _ Writing Function to Import Multiple Files at Once_ 
 
+
 ```{r, warning = FALSE, message= FALSE}
 library(readxl)
 
@@ -57,6 +58,9 @@ separate("filename", into = c("control", "subject")) %>%
   unnest(file_contents) %>% 
   mutate(control = recode(control, 'con' = "control", 'exp' =  "experimental"))
 ```
+
+While we need to pivot longer in order to plot this dataset, I think it is easier to read and tidier to visualize weeks as columns in order to see the distribution over time. 
+
 
 _Spaghetti Plot Separated by Face_Grid to show Control versus Experimental_
 
@@ -72,6 +76,70 @@ _Spaghetti Plot on one graph showing Control and Experimental_
 problem_2 %>% 
   pivot_longer(week_1:week_8, names_to = "week", names_prefix = "week_") %>% 
   ggplot(aes(x = week, y = value, group = subject, color = control)) + geom_path() + labs(title = "Distribution of Observations Across Weeks") + viridis::scale_color_viridis(discrete = TRUE) + theme(legend.position = "bottom")
+
+```
+
+
+# PROBLEM 3 
+
+_ Writing a function and loop for multiple betas_
+
+```{r}
+library(broom)
+set.seed(17)
+
+sim_regression = function(n = 30, beta0 = 2, beta1) {
+
+    sim_data = tibble(
+    x = rnorm(n, mean = 1, sd = 1),
+    y = beta0 + beta1 * x + rnorm(n, 0, 50))
+  
+  ls_fit = lm(y ~ x, data = sim_data) %>% broom::tidy()
+
+  ls_fit
+}
+
+sim_regression(30, 2, 0)
+
+sim_results = 
+  rerun(10000, sim_regression(30, 2, 0)) %>% 
+  bind_rows() %>% 
+  select(term, estimate, p.value) %>% 
+  knitr::kable()
+```
+
+sim_results = 
+  rerun(100, sim_regression(1, 2, 3, 4, 5, 6)) %>% 
+  bind_rows()
+  
+```{r}
+beta_list = list("b_1"  = 1, 
+              "b_2"  = 2, 
+              "b_3" = 3, 
+              "b_4" = 4,
+              "b_5" = 5,
+              "b_6" = 6
+              )
+
+output = vector("list", length = 6)
+
+for (i in 1:6) {
+  output[[i]] = rerun(10000, sim_regression(beta1 = beta_list[[i]])) %>% 
+    bind_rows
+}
+
+sim_results = 
+  tibble(beta1 = c(1, 2, 3, 4, 5, 6)) %>% 
+  mutate(
+    output_lists = map(.x = beta1, ~rerun(10000, sim_regression(beta1 = .x))),
+    estimate_dfs = map(output_lists, bind_rows)) %>% 
+  select(-output_lists) %>% 
+  unnest(estimate_dfs)
+
+sim_results = 
+  sim_results %>% 
+  filter(term == "x") %>% 
+  select(beta1, term, estimate, p.value)
 
 ```
 
