@@ -82,7 +82,7 @@ problem_2 %>%
 
 # PROBLEM 3 
 
-_ Writing a function and loop for multiple betas_
+_Writing a function and loop for multiple betas_
 
 ```{r}
 library(broom)
@@ -108,10 +108,7 @@ sim_results =
   knitr::kable()
 ```
 
-sim_results = 
-  rerun(100, sim_regression(1, 2, 3, 4, 5, 6)) %>% 
-  bind_rows()
-  
+
 ```{r}
 beta_list = list("b_1"  = 1, 
               "b_2"  = 2, 
@@ -140,9 +137,38 @@ sim_results =
   sim_results %>% 
   filter(term == "x") %>% 
   select(beta1, term, estimate, p.value)
-
 ```
 
+_Making two datasets to build proportion_
+
+```{r}
+sim_results = 
+  sim_results %>% 
+    mutate(reject = if_else(p.value < '0.05', '1', '0')) 
+
+reject_count = 
+    sim_results %>% 
+  filter(reject == 1) %>% 
+group_by(beta1) %>% 
+  summarize(n = n()) %>% 
+  rename("total_reject" = n)
+
+total_count = 
+  sim_results %>% 
+  count(beta1) %>% 
+    rename("total_pval" = n)
+```
+
+
+
+_Graph of Effect Size versus Power_
+
+```{r}
+total_count = left_join(total_count, reject_count, by = "beta1") %>% 
+  mutate(proportion = (total_reject / total_pval)*100) 
+
+  ggplot(total_count, aes(x = beta1, y = proportion)) + geom_line() + labs(title = "Proportion of Times Null was Rejected", x = "true beta", y = "Power") + scale_x_continuous(breaks = c(0,1,2,3,4,5,6))
+```
 
 
 
