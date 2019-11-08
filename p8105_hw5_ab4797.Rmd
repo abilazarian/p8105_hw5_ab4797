@@ -167,11 +167,32 @@ _Graph of Effect Size versus Power_
 total_count = left_join(total_count, reject_count, by = "beta1") %>% 
   mutate(proportion = (total_reject / total_pval)*100) 
 
-  ggplot(total_count, aes(x = beta1, y = proportion)) + geom_line() + labs(title = "Proportion of Times Null was Rejected", x = "true beta", y = "Power") + scale_x_continuous(breaks = c(0,1,2,3,4,5,6))
+  ggplot(total_count, aes(x = beta1, y = proportion)) + geom_line(color = "blue") + labs(title = "Proportion of Times Null was Rejected", x = "Effect Size", y = "Power") + scale_x_continuous(breaks = c(0,1,2,3,4,5,6))
 ```
 
+This plot demonstrates the direct relationsip between power and effect size. As effect size increases, so does power. This makes sense conceptually as power is the likelihood that a study will detect an effect, an effect is more likely to be detected if it is larger. 
 
 
+_Plots showing 
 
 
+```{r}
+library(ggplot2)
+library(patchwork)
 
+p1 = sim_results %>% 
+  group_by(beta1) %>% 
+  summarize(mean_estimate = mean(estimate)) %>% 
+  ggplot(aes(x = beta1, y = mean_estimate)) + geom_point(color = "blue") + labs(x = "true beta", y = "average beta hat estimate", title = "Total Values") + geom_line(color = "blue")
+
+          
+p2 = sim_results %>% 
+   filter(reject ==1) %>% 
+  group_by(beta1) %>% 
+  summarize(mean_rejected = mean(estimate)) %>% 
+  ggplot(aes(x = beta1, y = mean_rejected)) + geom_point(color = "mediumorchid") + labs(x = "true beta", y = "rejected beta hat estimate", title = "Rejected Values") + geom_line(color = "mediumorchid")
+
+p1 + p2
+```
+
+These two plots show the average estimate of beta hat (Left) and the average estimate of beta hat for the samples where null was rejected (Right). The sample average of beta hat in both plots is not equal to the true value as the left plot is showing total betas versus the right is showing just those that have been rejected. While both plots are increasing, you can see that the y axis of the rejected beta hat estimate is higher than that of the total average beta hat estimate. 
