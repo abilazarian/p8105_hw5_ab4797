@@ -38,13 +38,15 @@ missing_data = function(x)  {
     }}
   
 iris_with_missing =  map(iris_with_missing, missing_data) %>% 
-  as_tibble()
+  as_tibble() 
+
 ```
 
+This function replaced numeric NA values with the mean of the remaining observations, and character values with the name 'virginica'. We then mapped the function onto the same datset to fill in the values. 
 
 # PROBLEM 2
 
-_ Writing Function to Import Multiple Files at Once_ 
+_Writing Function to Import Multiple Files at Once_ 
 
 
 ```{r, warning = FALSE, message= FALSE}
@@ -59,10 +61,10 @@ separate("filename", into = c("control", "subject")) %>%
   mutate(control = recode(control, 'con' = "control", 'exp' =  "experimental"))
 ```
 
-While we need to pivot longer in order to plot this dataset, I think it is easier to read and tidier to visualize weeks as columns in order to see the distribution over time. 
+While we need to pivot longer in order to plot this dataset, I think it is easier to read and tidier to visualize weeks as columns in order to see the distribution over time. So I left the dataset as is and will use pivot longer when I build my Spaghetti plots. 
 
 
-_Spaghetti Plot Separated by Face_Grid to show Control versus Experimental_
+_Spaghetti Plot 1: Separated by Face_Grid to show Control versus Experimental_
 
 ```{r}
 problem_2 %>% 
@@ -70,7 +72,10 @@ pivot_longer(week_1:week_8, names_to = "week", names_prefix = "week_") %>%
   ggplot(aes(x = week, y = value, group = subject, color = subject)) + geom_path() + labs(title = "Distribution of Observations Across Weeks") + facet_grid(~control) + viridis::scale_color_viridis(discrete = TRUE) + theme(legend.position = "bottom")
 ```
 
-_Spaghetti Plot on one graph showing Control and Experimental_
+This plot allows us to see that the experimental group increased as time went on while the control group did not change much over time. This plot specifically allows us to see the distribution for each subject, for examle, the highest values in the control group are attributed to subject 10.
+
+
+_Spaghetti Plot 2: One graph to show Control and Experimental together_
 
 ```{r}
 problem_2 %>% 
@@ -79,6 +84,7 @@ problem_2 %>%
 
 ```
 
+This graph does not allow us to see distinct values for each subject, but does allow us to compare control versus experimental more easily for any given week. For example, we can see that at week 1-2, control and example have similar starting values but around week 3 we can see a change in the experimental group. 
 
 # PROBLEM 3 
 
@@ -170,11 +176,10 @@ total_count = left_join(total_count, reject_count, by = "beta1") %>%
   ggplot(total_count, aes(x = beta1, y = proportion)) + geom_line(color = "blue") + labs(title = "Proportion of Times Null was Rejected", x = "Effect Size", y = "Power") + scale_x_continuous(breaks = c(0,1,2,3,4,5,6))
 ```
 
-This plot demonstrates the direct relationsip between power and effect size. As effect size increases, so does power. This makes sense conceptually as power is the likelihood that a study will detect an effect, an effect is more likely to be detected if it is larger. 
+This plot demonstrates the direct relationsip between power and effect size. As effect size increases, so does power. This makes sense as power is the likelihood that a study will detect an effect, and an effect is more likely to be detected if it is larger. 
 
 
-_Plots showing 
-
+_Plots showing_
 
 ```{r}
 library(ggplot2)
